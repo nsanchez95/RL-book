@@ -4,10 +4,6 @@ from rl.markov_decision_process import FiniteMarkovDecisionProcess
 from rl.markov_decision_process import FinitePolicy, StateActionMapping
 from rl.markov_process import FiniteMarkovProcess, FiniteMarkovRewardProcess
 from rl.distribution import Categorical, Constant
-from rl.dynamic_programming import policy_iteration_result, value_iteration_result
-from rl.dynamic_programming import policy_iteration, value_iteration
-from rl.dynamic_programming import almost_equal_vf_pis, almost_equal_vfs
-from rl.iterate import converge
 from scipy.stats import poisson
 import numpy as np
 import itertools
@@ -79,74 +75,27 @@ def find_optimal_policy(mrd, pols):
 if __name__ == '__main__':
     from pprint import pprint
 
-    gamma = 1.0
-    diff_nums = np.arange(25,50, 5)
-    num_tests = len(diff_nums)
-    num_iters_pi = np.zeros(num_tests)
-    num_iters_vi = np.zeros(num_tests)
-    count = 0
-    for num_llpads in diff_nums:
-        llp_mdp: FiniteMarkovDecisionProcess[LilyPondState, int] =\
-            LilyPondMDP(
-                num_pads=num_llpads,
-            )
-        num_iters_pi[count] = sum(1 for _ in converge(policy_iteration(llp_mdp, gamma = gamma), almost_equal_vf_pis))
-        num_iters_vi[count] = sum(1 for _ in converge(value_iteration(llp_mdp, gamma = gamma), almost_equal_vfs))
-        count+= 1
+    num_llpads = 9
 
+    llp_mdp: FiniteMarkovDecisionProcess[LilyPondState, int] =\
+        LilyPondMDP(
+            num_pads=num_llpads,
+        )
+    all_pols_llp = all_policies_llp(num_llpads)
+    pol = all_pols_llp[2]
+    print(pol)
+    print(llp_mdp.apply_finite_policy(pol))
+    print(llp_mdp.apply_finite_policy(pol).get_value_function_vec(gamma = 1.0))
+    opt_pol, opt_val, opt_start_val = find_optimal_policy(llp_mdp, all_pols_llp)
+    opt_pol = [opt_pol.act(k).sample() for k in opt_pol.states()]
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 3))
     states = np.arange(1, num_llpads)
-    ax.plot(diff_nums, num_iters_pi, color = 'b', label = 'Policy Iteration')
-    ax2 = ax.twinx()
-    ax2.plot(diff_nums, num_iters_vi, color = 'r', label = 'Value Iteration')
-    ax.legend()
-    ax2.legend()
-    ax.set_ylabel('Policy Iteration Num Iterations')
-    ax2.set_ylabel('Value Iteration Num Iterations')
-    ax.set_xlabel('Number of Lillypads')
+    ax.bar(states-0.1,opt_val, color = 'b', width = 0.2)
+    ax.bar(states+0.1,opt_pol, color = 'r', width = 0.2)
+    ax.legend(labels=['Escape Prob', 'Croak B Optimal'])
+    ax.set_ylabel('Escape Probability')
+    ax.set_xlabel('Lilypad Number')
     plt.show()
-    # i = 0
-    # last_step = None
-    # for update_step in policy_iteration(llp_mdp, gamma = gamma):
-    #     if(last_step == None):
-    #         last_step = update_step
-    #         continue
-    #     if almost_equal_vf_pis(last_step, update_step):
-    #         break
-    #     last_step = update_step
-    #     i+=1
-    # print("Num iterations", i)
-    # print(last_step)
-
-
-    # i = 0
-    # last_step = None
-    # for update_step in value_iteration(llp_mdp, gamma = gamma):
-    #     if(last_step == None):
-    #         last_step = update_step
-    #         continue
-    #     if almost_equal_vfs(last_step, update_step):
-    #         break
-    #     last_step = update_step
-    #     i+=1
-    # print("Num iterations", i)
-    # print(last_step)
-        
-    # all_pols_llp = all_policies_llp(num_llpads)
-    # pol = all_pols_llp[2]
-    # print(pol)
-    # print(llp_mdp.apply_finite_policy(pol))
-    # print(llp_mdp.apply_finite_policy(pol).get_value_function_vec(gamma = 1.0))
-    # opt_pol, opt_val, opt_start_val = find_optimal_policy(llp_mdp, all_pols_llp)
-    # opt_pol = [opt_pol.act(k).sample() for k in opt_pol.states()]
-    # fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 3))
-    # states = np.arange(1, num_llpads)
-    # ax.bar(states-0.1,opt_val, color = 'b', width = 0.2)
-    # ax.bar(states+0.1,opt_pol, color = 'r', width = 0.2)
-    # ax.legend(labels=['Escape Prob', 'Croak B Optimal'])
-    # ax.set_ylabel('Escape Probability')
-    # ax.set_xlabel('Lilypad Number')
-    # plt.show()
     # fdp: FinitePolicy[InventoryState, int] = FinitePolicy(
     #     {InventoryState(alpha, beta):
     #      Constant(user_capacity - (alpha + beta)) for alpha in
