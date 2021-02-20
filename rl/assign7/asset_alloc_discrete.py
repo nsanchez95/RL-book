@@ -9,6 +9,8 @@ from operator import itemgetter
 import numpy as np
 
 
+
+
 @dataclass(frozen=True)
 class AssetAllocDiscrete:
     # risky_return_distributions: Sequence[Distribution[float]]
@@ -31,8 +33,8 @@ class AssetAllocDiscrete:
         State is Wealth W_t, Action is investment in risky asset (= x_t)
         Investment in riskless asset is W_t - x_t
         """
-
-        distr: Distribution[float] = self.risky_return_distributions[t]
+        mu,sigma = self.risky_return_distributions[t]
+        distr: Distribution[float] = Gaussian(μ=mu, σ=sigma)
         rate: float = self.riskless_returns[t]
         alloc_choices: Sequence[float] = self.risky_alloc_choices
         steps: int = self.time_steps()
@@ -184,6 +186,7 @@ if __name__ == '__main__':
     risky_ret_N: Sequence[Tuple[float,float]] = [(μ, σ) for _ in range(steps)]
     riskless_ret: Sequence[float] = [r for _ in range(steps)]
     utility_function: Callable[[float], float] = lambda x: - np.exp(-a * x) / a
+    util_exp_from_mean: Callable[[float], float] = lambda x: - np.exp(-a * x) / a
     alloc_choices: Sequence[float] = np.linspace(
         2 / 3 * base_alloc,
         4 / 3 * base_alloc,

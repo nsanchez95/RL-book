@@ -17,21 +17,36 @@ class RiskyRetDistr(Distribution[A]):
     std: float
     alloc: float
     wealth: float
-
+    util_fn: Callable[[float], float]
+    util_fn_exp: Callable[[float], float]
+    last_set : bool
     def __init__(
         self,
         mean: float,
         std: float,
+        rate: float,
         wealth: float,
-        alloc: float
+        alloc: float,
+        util_fn: Callable[[float], float],
+        util_fn_exp: Callable[[float], float],
+        last_set: bool
     ):
         self.mean = mean
         self.std = std
+        self.rate = rate
         self.wealth = wealth
         self.alloc = alloc
+        self.util_fn = util_fn
+        self.util_fn_exp = util_fn_exp
+        self.last_set = last_set
+
 
     def sample(self) -> A:
-        return 
+        next_wealth: float = self.alloc * (1 + np.random.normal(loc=self.mean, scale=self.std)) \
+                + (self.wealth - self.alloc) * (1 + self.rate)
+        reward: float = self.util_fn(next_wealth) \
+                        if self.last_set else 0.
+        return (next_wealth, reward)
 
     def expectation(
         self,
