@@ -85,6 +85,19 @@ v[n] &= 0\\
 v[i] &= 1 + \frac{1}{n-i}\sum_{j = i+1}^n v[j]
 \end{align*}
 
+To try to understand the difference between two terms in this series we note that we can rearrange this to yield
+$$\sum_{j = i+1}^n v[j]  = (n-i)(v[i]-1)$$
+
+But the right hand side increases by $v_i$ if we move to the next term which yields:
+\begin{align*}
+\sum_{j = i+1}^n v[j] - \sum_{j = i+2}^n v[j]  &= (n-i)(v[i]-1) - (n-i-1)(v[i+1]-1)\\
+v[i+1] &= (n-i)(v[i]-1) -  (n-i-1)(v[i+1]-1)\\
+v[i+1] &= (n-i)(v[i]-v[i+1]) - (1 - v[i+1])\\
+v[i]-v[i+1] &= \frac{1}{n-i}\\
+\end{align*}
+Now we can sum difference to obtain  
+$$ v[i] = v[i] - v[n] = \sum_{j=n-1}^{i}(v[j] -v[j+1]) = \sum_{j=n-1}^{i}\frac{1}{n-j} =  \sum_{j=1}^{n-i}\frac{1}{j}$$
+which all comes together to yield:
 
 \section{Extended Stock Price}
 
