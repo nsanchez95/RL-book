@@ -19,7 +19,7 @@
 \setlength {\parskip}{2pt}
 \setlength{\parindent}{0pt}
 
-\newcommand{\headings}[4]{\noindent {\bf Assignment 6 CME241} \hfill {{\bf Author:} Nicolas Sanchez} \\
+\newcommand{\headings}[4]{\noindent {\bf Assignment 7 CME241} \hfill {{\bf Author:} Nicolas Sanchez} \\
 {} \hfill {{\bf Due Date:} #2} \\
 
 \rule[0.1in]{\textwidth}{0.025in}
@@ -34,7 +34,7 @@
 
 
 
-\section{Merton's Continuous Time Formulation}
+\section{Merton's Continuous Time Formulation - TO FINISH}
 We have the following setup:
 \begin{align*}
 dW_t = ((r + \pi_t(\mu-r))W_t - c_t)dt + \pi_t\sigma W_t dz_t\\
@@ -68,6 +68,8 @@ Substituting in gives:
 \rho V^*(t,W_t)  &= \frac{\partial V}{\partial t} + \frac{\partial V}{\partial W_t}(rW_t)-\frac{(\frac{\partial V}{\partial W_t})^2(\mu-r)^2}{2\sigma^2\frac{\partial^2 V}{\partial W_t^2}} - 1-\log(\frac{\partial V}{\partial W_t})
 \end{align*}
 
+NEED TO FIND THE RIGHT GUESS FOR FUNCTION. GUESS FROM CLASS DOES NOT WORK :( 
+
 Based on the solution from class we guess a solution of the form:
 \begin{align*}
 V^*(t,W_t) &= f(t)\log(W_t) \\
@@ -84,103 +86,28 @@ Which reduces to:
 f'(t) = \log(W_t) &=  f'(t)\log(W_t) + rf(t)+\frac{(\mu-r)^2}{2\sigma^2}f(t) - 1-\log(\frac{f(t)}{W_t})\\
 \end{align*}
 
-Since we know the variance and expectation of the normal variable $x\sim N(\mu,\sigma^2) $ we can compute:
+
+\section{Speed improvement asset alloc discrete - TO FINISH}
+
+I am hitting somewhat of a fundamental road block for implementing the new expectation. The expectation() in the distribution class must be for any function f (passed as argument) and in my mind that hence requires, in the most general case, something that resembles an integration, notably the evaluation of f on a variety of possible samples. This is exactly what sampledDistribution does... So should our implementation derive an analytical simplification for the specific function f that will be called in ADP. Or should we somehow be doing more efficient sampling?
+
+\section{Career Path MDP}
+We denote $s$ as the skill level, $\alpha$ the number of minutes spent working, $p$ the probability of job loss and $\lambda$ the half time of unemployed time. We create the state space as three entries $(s,j,d)$ where $s$ is the skill level, $j$ is a boolean which is indicates if the person is employed on this day. $d$ is the day number.
+
+$$ \mathbf{S} = \{(s,j,d) | s\in \mathbb{R}, j \in \text{"Employed", "Unemployed"}, d\mathbb{N}\} $$
+The action would be the time spent working $\alpha$ or the constant action:
+$$ \mathbf{A} = \{\alpha | \alpha\in (0,M)\}$$
+with $M$ the number of minutes available to work/learn in a day.
+The reward will directly being the wages paid if employed or nothing if unemployed:
+$$\mathbf{R}((s,j,d)) \begin{cases} f(s)\alpha& \text{if $j =$ "Employed}\\ 0 & \text{ if $j =$ "Unemployed}\end{cases} $$
+Finally the transition functions will depend on whether the person is employed or not:
 \begin{align*}
-E[U(x)] &= E[x] -\frac{\alpha E[x^2]}{2}\\
-&= \mu - \frac{\alpha}{2}(E[ (x-\mu)^2 +2x\mu - \mu^2 ])\\
-&= \mu - \frac{\alpha}{2}(E[ (x-\mu)^2] +2E[x]\mu - \mu^2 )\\
-&= \mu - \frac{\alpha}{2}(\sigma^2 + \mu^2 )\\
+Pr((s,\text{"UNEMPLOYED"},d+1),\alpha, (s,\text{"EMPLOYED"},d)) = p\\
+Pr((s-(\lambda),\text{"EMPLOYED"},d+1),\alpha, (s,\text{"EMPLOYED"},d)) = 1-p\\
+Pr((s(1+(\frac{1}{2})^{\lambda^{-1}} g(s),\text{"UNEMPLOYED"},d+1),\alpha, (s,\text{"UNEMPLOYED"},d)) = 1-h(s)\\
+Pr((s(1+(\frac{1}{2})^{\lambda^{-1}} g(s),\text{"EMPLOYED"},d+1),\alpha, (s, \text{"UNEMPLOYED"},d)) = h(s)\\
 \end{align*}
-
-We know that $U(x_{CE}) = E[U(x)]$ so using the result above we solve:
-\begin{align*}
-x_{CE} -\frac{\alpha x_{CE}^2}{2} =  \mu - \frac{\alpha}{2}(\sigma^2 + \mu^2 )\\
--\frac{\alpha x_{CE}^2}{2} + x_{CE} + (\frac{\alpha}{2}(\sigma^2 + \mu^2 ) - \mu)=  0\\
-\end{align*}
-This is a quadratic equation with known roots:
-\begin{align*}
-x_{CE} &= \frac{1 \pm \sqrt{1 + 4 \frac{\alpha x_{CE}^2}{2} (\frac{\alpha}{2}(\sigma^2 + \mu^2 ) - \mu)}}{\alpha x_{CE}^2}\\
-	 &= \frac{1 \pm \sqrt{1 + 2\alpha x_{CE}^2 (\frac{\alpha}{2}(\sigma^2 + \mu^2 ) - \mu)}}{\alpha x_{CE}^2}\\
-\end{align*}
-
-This yields that the risk premia is:
-\begin{align*}
-\pi_{A} &= E[x] - x_{CE}\\
-&= \mu -  \frac{1 \pm \sqrt{1 + 2\alpha x_{CE}^2 (\frac{\alpha}{2}(\sigma^2 + \mu^2 ) - \mu)}}{\alpha x_{CE}^2}\\
-\end{align*}
-
-Note that for a certain allocation $z$, the quantity $y(z) = zx + (1-z)r$ with $x\sim N(\mu,\sigma^2) $ behaves as $$y(z)\sim N(z\mu+(1-z)r, z^2\sigma^2)$$ 
-Therefore we can use our results from above to find the expected return for a certain allocation:
-\begin{align*}
-E[U(zx + (1-z)r)] &= E[y(z)]\\
-&= z\mu+(1-z)r - \frac{\alpha}{2}(z^2\sigma^2 + (z\mu+(1-z)r)^2 )\\
-&= z\mu+(1-z)r - \frac{\alpha}{2}(z^2\sigma^2 + z^2\mu^2 + 2z\mu(1-z)r + (1-z)^2r^2 )\\
-&= z\mu+r -zr - \frac{\alpha}{2}(z^2\sigma^2 + z^2\mu^2 + 2z\mu r - 2z^2r\mu  + (1-2z + z^2)r^2 )\\
-&=- \frac{\alpha}{2}(\sigma^2+ \mu^2-2r\mu+r^2)z^2  + (\mu -r - \frac{\alpha}{2}(2r\mu -2r^2))z + r - \frac{\alpha}{2}r^2\\
-&=- \frac{\alpha}{2}(\sigma^2+ \mu^2-2r\mu+r^2)z^2  + (\mu -r - \alpha(r\mu -r^2))z + r - \frac{\alpha}{2}r^2\\
-\end{align*}
-This is a quadratic function maximised at:
-\begin{align*}
-z_{opt} &= \frac{\mu -r - \alpha(r\mu -r^2)}{\alpha(\sigma^2+ \mu^2-2r\mu+r^2)}\\
-&= \frac{\frac{1}{\alpha}(\mu -r) -r\mu +r^2}{\sigma^2+ (\mu-r)^2}\\
-\end{align*}
-This makes intuitive with higher risk appetite (smaller $\alpha$) leading to taking a bigger allocation to the volatile option. We plot the result.
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{plot_allocation.png}
-  \caption{Allocation with varying alphas}
-  \label{fig:llp3}
-\end{figure}
-
-\section{CRRA Calculation}
-We have:
-$$ U(x) = \log(x)$$
-And we have:
-\begin{align*}
-U'(x) &= \frac{1}{x}\\
-U''(x) &= \frac{-1}{x^2}\\
-R(x) &= \frac{-U''(x)x}{U'(x)} = 1
-\end{align*}
-Since we have a lognormal distribution of $log(x) \sim N(\mu,\sigma^2)$, $E[U(x)] = E[\log(x)] = \mu$ by definition. Solving for $\log(x_{CE}) = \mu$ yields $x_{CE} = \exp(\mu)$.
-
-Having recovered the setup we turn to the case where we have an allocation of $\pi$ to the Ito process $S_t$ and $(1-\pi)$ to $R_t$ which is a riskless asset or formally the two options are.
-\begin{align*}
-dS_t &= \mu S_t dt+ \sigma S_t dz_t\\
-dR_t &= r R_t dt
-\end{align*} 
-
-Applying Ito's Lemma shows that a fixed allocation $\pi$ in fact behaves as $\log(W_t) \sim N(r+\pi(\mu-r) - \frac{\pi^2\sigma^2}{2}, \pi^2\sigma^2)$
-
-From the calculation above we know that for our utility function we are looking to maximise the quantity
-$$r+\pi(\mu-r) - \frac{\pi^2\sigma^2}{2}$$
-This is a quadratic equation maximised at:
-$$\pi^* = \frac{\mu-r}{\sigma^2}$$
-
-\section{Kelly's Criterion}
-With initial wealth $W_0$ and initial bet $fW_0$ we have after a single bet two outcomes:
-$$ W = \begin{cases}W_0(1+f\alpha)  \text{  with probability $p$}\\W_0(1-f\beta) \text{  with probability $1-p$} \end{cases}$$
-or in log space:
-
-$$ \log(W) = \begin{cases}\log(W_0) + \log(1+f\alpha)  \text{  with probability $p$}\\ \log(W_0)+ \log(1-f\beta) \text{  with probability $1-p$} \end{cases}$$
-
-This gives us the expected log wealth after one bet to be:
-
-$$E[\log(W)] = \log(W_0) + p\log(1+f\alpha) + (1-p)\log(1-f\beta) $$
-
-The derivative of this with respect to $f$ and setting to zero yields:
-\begin{align*}
-\frac{p\alpha}{1+f\alpha} - &\frac{(1-p)\beta}{1-f\beta} = 0\\
-\frac{p\alpha}{1+f\alpha} &= \frac{(1-p)\beta}{1-f\beta}\\
-p\alpha(1-f\beta) &= (1+f\alpha)(1-p)\beta\\
-p\alpha-p\alpha f \beta &= (1-p)\beta +f\alpha(1-p)\beta\\
-p\alpha-p\alpha f \beta &= (1-p)\beta +f\alpha(1-p)\beta\\
-f(p\alpha \beta+\alpha(1-p)\beta) &= p\alpha - (1-p)\beta\\
-f &= \frac{p\alpha - (1-p)\beta}{\alpha \beta}\\
-f &= \frac{p}{\beta} - \frac{1-p}{\alpha}
-\end{align*} 
-
-Note that the second derivative at this extrema is:
-\begin{align*}
--\frac{p\alpha^2}{(1+f\alpha)^2} - &\frac{(1-p)\beta^2}{(1-f\beta)^2}
-\end{align*} 
-Since $p$ is between 0 and 1, this quantity is necessarily negative (or zero), meaning this is in indeed a maximum. This makes intuitive sence as you should bet more of your wealth with higher chance of success (larger $p$), higher upside \end{document}
+ 
+ 
+ We note that the existence of the $d$ feature means that we could incorporate finite horizon dynamics into the transitions probabilities easily. Different skills could be accommodated using a vector representation of the skill level, in other words $s \in \mathbf{R}^{m}$. This could in turn lead to the action becoming an allocation of time over all the learning skills, ie with $\alpha \in \mathbf{N}_+^{m+1}$ (all skills + working) note that we restrict this action space to $\sum_i \alpha_i = M$. Multiple job options would likely require to convert the single probability $h(s)$ into a multivariate function which maps the vector $s$ to a vector of probabilities with all entries between 0 and 1 corresponding to the probability of getting a job for each potential job. 
+\end{document}
