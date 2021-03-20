@@ -1,0 +1,125 @@
+\documentclass{article}[12pt]
+\usepackage{color}
+\usepackage[normalem]{ulem}
+\usepackage{times}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\def \R {\mathbb R}
+\def \imp {\Longrightarrow}
+\def \eps {\varepsilon}
+\def \Inf {{\sf Inf}}
+\newenvironment{proof}{{\bf Proof.  }}{\hfill$\Box$}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{claim}{Claim}[section]
+\setlength {\parskip}{2pt}
+\setlength{\parindent}{0pt}
+
+\newcommand{\headings}[4]{\noindent {\bf Assignment 9 CME241} \hfill {{\bf Author:} Nicolas Sanchez} \\
+{} \hfill {{\bf Due Date:} #2} \\
+
+\rule[0.1in]{\textwidth}{0.025in}
+}
+
+\newcommand{\klnote}[1]{{\color{red} #1}}
+\newcommand{\klsout}[1]{{\color{red} \sout{#1}}}
+
+\begin{document}
+
+\headings{\#1}{Tuesday, October 8, 10:30am}\section{} 
+
+
+
+\section{Order Book Dynamics}
+NOTE: MUST IMPLEMENT ORDER BOOK DYNAMICS
+
+\section{Linear Percentage temporary}
+We use the given price and price impact dynamics:
+\begin{align*}
+P_{t+1} &= P_t e^{Z_t}\\
+X_{t+1} &= \rho X_t + \eta_t\\
+Q_t &= P_t(1-\beta N_t - \theta X_t)
+\end{align*}
+
+As the example seen in class we look at the recursive bellman optimality equation for $V^*$ by first computing $V^*_{T-1}$:
+\begin{align*}
+V^*_{T-1} =& N_{T-1}Q_{T-1} = R_{T-1}P_{T-1}(1-\beta R_{T-1} - \theta X_{T-1})\\ 
+\end{align*}
+We can then look at the next layer $V_{T-2}$ and replace the $N_{T-1}, X_{T-1}, P_{T-1}$ values according to our known dynamics:
+\begin{align*}
+V^*_{T-2} &=  N_{T-2}P_{T-2}(1-\beta N_{T-2} - \theta X_{t-2}) + E[V_{T-1} | P_{T-2}, V_{T-2}]\\
+&=  N_{T-2}P_{T-2}(1-\beta N_{T-2} - \theta X_{t-2}) + E [R_{T-1}P_{T-1}(1-\beta R_{T-1} - \theta X_{T-1} )]\\
+&=  N_{T-2}P_{T-2}(1-\beta N_{T-2} - \theta X_{t-2} ) + E [(R_{T-2}-N_{T-2})P_{T-2}e^{Z_{T-2}}(1-\beta(R_{T-2}-N_{T-2}) - \theta (\rho X_{T-2} + \eta_{T-2})]\\
+&=  N_{T-2}P_{T-2}(1-\beta N_{T-2} - \theta X_{t-2} ) + (R_{T-2}-N_{T-2})P_{T-2}E[e^{Z_{T-2}}](1-\beta(R_{T-2}-N_{T-2}) - \theta \rho X_{T-2})\\
+\end{align*}
+
+We now take the derivative of this with respect to $N_{T-2}$ to find the optimal action:
+
+\begin{align*}
+\frac{\partial V^*_{T-2}}{\partial N_{T-2}}=  P_{T-2}(1-\beta N_{T-2} - \theta X_{t-2} ) - \beta N_{T-2}P_{T-2} 
+&-P_{T-2}E[e^{Z_{T-2}}](1-\beta(R_{T-2}-N_{T-2}) - \theta \rho X_{T-2})\\
++ (R_{T-2}-N_{T-2})P_{T-2}E[e^{Z_{T-2}}]\beta)
+\end{align*}
+Setting this to zero and gathering all terms with $N_{T-2}$ on one side and dividing through by $P_{T-2}$yields:
+\begin{align*}
+N_{T-2}2\beta (1+ E[e^{Z_{T-2}}]) =  1- \theta X_{T-2} - E[e^{Z_{T-2}}] (1-\beta R_{T-2} - \theta \rho X_{T-2}) +\beta R_{T-2}E[e^{Z_{T-2}}]
+\end{align*}
+
+We hence can get an expression for the requested $c_{T-2}^{(1)}, c_{T-2}^{(2)}, c_{T-2}^{(3)}$ by plugging in $E[e^Z] = e^{\mu_z + \frac{\sigma_z^2}{2}}$ such that:
+\begin{align*}
+N^*_{T-2} = c_{T-2}^{(1)} + c_{T-2}^{(2)} R_{T-2} + c_{T-2}^{(3)} X_{T-2}\\
+c_{T-2}^{(1)} = \frac{1-e^{\mu_z + \frac{\sigma_z^2}{2}}}{2\beta(1+ e^{\mu_z + \frac{\sigma_z^2}{2}})}\\
+c_{T-2}^{(2)} = \frac{e^{\mu_z + \frac{\sigma_z^2}{2}}}{(1+ e^{\mu_z + \frac{\sigma_z^2}{2}})}\\
+c_{T-2}^{(3)} = \theta\frac{\rho e^{\mu_z + \frac{\sigma_z^2}{2}}-1}{2\beta(1+ e^{\mu_z + \frac{\sigma_z^2}{2}})}\\
+\end{align*}
+
+This can then be plugged back in to the value function to obtain:
+
+\begin{align*}
+&V^*_{T-2} =  (c_{T-2}^{(1)} + c_{T-2}^{(2)} R_{T-2} + c_{T-2}^{(3)} X_{T-2})P_{T-2}(1-\beta (c_{T-2}^{(1)} + c_{T-2}^{(2)} R_{T-2} + c_{T-2}^{(3)} X_{T-2}) - \theta X_{t-2}) \\
+&+ (R_{T-2}-(c_{T-2}^{(1)} + c_{T-2}^{(2)} R_{T-2} + c_{T-2}^{(3)} X_{T-2}))P_{T-2}E[e^{Z_{T-2}}](1-\beta(R_{T-2}-(c_{T-2}^{(1)} + c_{T-2}^{(2)} R_{T-2} + c_{T-2}^{(3)} X_{T-2})) - \theta \rho X_{T-2})
+\end{align*}
+We gather coefficients term by term:
+\begin{align*}
+V^*_{T-2}/P_{T-2} =  &c_{T-2}^{(1)}(1-\beta c_{T-2}^{(1)}) - E[e^{Z_{T-2}}](1+\beta c_{T-2}^{(1)}) \\
+& + X_{T-2}[c_{T-2}^{(3)}(1-\beta c_{T-2}^{(1)}) - \beta c_{T-2}^{(3)} c_{T-2}^{(1)} -\theta c_{T-2}^{(1)}+ E[e^{Z_{T-2}}](-c_{T-2}^{(3)}(1+\beta c_{T-2}^{(1)}) - \beta c_{T-2}^{(3)}c_{T-2}^{(1)}  +\theta \rho c_{T-2}^{(1)})]\\
+& + X_{T-2}^2[-c_{T-2}^{(3)}(\theta + \beta c_{T-2}^{(3)}) + c_{T-2}^{(3)}E[e^{Z_{T-2}}](-\beta c_{T-2}^{(3)}  +\theta \rho)]\\
+& + R_{T-2}X_{T-2}[ c_{T-2}^{(2)}(-\beta c_{T-2}^{(3)} - \theta) + c_{T-2}^{(3)}(-\beta c_{T-2}^{(2)}) + E[e^{Z_{T-2}}]((1-c_{T-2}^{(2)})(\beta c_{T-2}^{(3)}-\rho\theta) + (c_{T-2}^{(3)})(\beta -\beta c_{T-2}^{(2)}) )]\\
+& + R_{T-2}[c_{T-2}^{(2)}(1-\beta c_{T-2}^{(1)}) + c_{T-2}^{(1)}(-\beta c_{T-2}^{(2)})+E[e^{Z_{T-2}}]((1- c_{T-2}^{(2)})(1+\beta  c_{T-2}^{(1)}) - c_{T-2}^{(1)}(-\beta+  \beta  c_{T-2}^{(2)}) )]\\
+& + R_{T-2}^2[ -c_{T-2}^{(2)}\beta c_{T-2}^{(2)}+ E[e^{Z_{T-2}}]((1-c_{T-2}^{(2)})(-\beta + \beta c_{T-2}^{(2)})]\\
+\end{align*}
+
+which simplifies to:
+
+\begin{align*}
+V^*_{T-2}/P_{T-2} =  &c_{T-2}^{(1)}(1-\beta c_{T-2}^{(1)}) - E[e^{Z_{T-2}}](1+\beta c_{T-2}^{(1)}) \\
+& + X_{T-2}[ (1-E[e^{Z_{T-2}}])c_{T-2}^{(3)}]\\
+& + X_{T-2}^2[c_{T-2}^{(3)}[(\theta \rho -\beta c_{T-2}^{(3)})E[e^{Z_{T-2}}] - (\theta + \beta c_{T-2}^{(3)} )]]\\
+& + R_{T-2}X_{T-2}[-c_{T-2}^{(2)} \theta (1+ \rho)]\\
+& + R_{T-2}[c_{T-2}^{(2)}[2 c_{T-2}^{(2)}]\\
+& + R_{T-2}^2[-\beta  c_{T-2}^{(2)}]\\
+\end{align*}
+
+Which can be written as:
+
+\begin{align*}
+V^*_{T-2}/P_{T-2} =  &a_1 + b_1 X_{T-2} + c_1 X_{T-2}^2 + d_1 X_{T-2}R_{T-2} + e_1 R_{T-2} + f_1 R_{T-2}^2\\
+\end{align*}
+
+with:
+
+\begin{align*}
+a_1 &= c_{T-2}^{(1)}(1-\beta c_{T-2}^{(1)}) - E[e^{Z_{T-2}}](1+\beta c_{T-2}^{(1)}) \\
+b_1 &= (1-E[e^{Z_{T-2}}])c_{T-2}^{(3)}\\
+c_1 &= c_{T-2}^{(3)}[(\theta \rho -\beta c_{T-2}^{(3)})E[e^{Z_{T-2}}] - (\theta + \beta c_{T-2}^{(3)} )]\\
+d_1 &= - c_{T-2}^{(2)} \theta (1+ \rho)\\
+e_1 &= 2 c_{T-2}^{(2)}\\
+f_1 &= -\beta  c_{T-2}^{(2)}\\
+\end{align*}
+
+And that gives us the closed from solution for the value function at the the time step. We could continue this process recursively for remaining time steps.
+\end{document}

@@ -132,6 +132,20 @@ class Gaussian(SampledDistribution[float]):
             expectation_samples=expectation_samples
         )
 
+class LogNormal(SampledDistribution[float]):
+    '''A LogNormal distribution with the given μ and σ.'''
+    x_0: float
+    μ: float
+    σ: float
+
+
+    def __init__(self, μ: float, σ: float, expectation_samples: int = 10000):
+        self.μ = μ
+        self.σ = σ
+        super().__init__(
+            sampler=lambda: x_0*np.random.lognormal(loc=self.μ, scale=self.σ),
+            expectation_samples=expectation_samples
+        )
 
 class FiniteDistribution(Distribution[A], ABC):
     '''A probability distribution with a finite number of outcomes, which

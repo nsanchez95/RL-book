@@ -19,6 +19,7 @@ class OrderBook:
 
     descending_bids: PriceSizePairs
     ascending_asks: PriceSizePairs
+    time: int
 
     def bid_price(self) -> float:
         return self.descending_bids[0].dollars
@@ -213,6 +214,24 @@ class OrderBook:
         # plt.xticks(x_pos, x)
         plt.show()
 
+
+
+@dataclass
+class InsensitiveFlowOB(MarkovProcess[OrderBook]):
+
+    level_param: int  # level to which price mean-reverts
+    alpha1: float = 0.25  # strength of mean-reversion (non-negative value)
+
+    def up_prob(self, state: StateMP1) -> float:
+        return get_logistic_func(self.alpha1)(self.level_param - state.price)
+
+    def transition(self, state: StateMP1) -> Categorical[StateMP1]:
+        up_p = self.up_prob(state)
+
+        return Categorical({
+            StateMP1(state.price + 1): up_p,
+            StateMP1(state.price - 1): 1 - up_p
+        })
 
 if __name__ == '__main__':
 

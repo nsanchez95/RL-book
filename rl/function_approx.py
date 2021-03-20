@@ -86,7 +86,10 @@ class FunctionApprox(ABC, Generic[X]):
           xs -- list of inputs to evaluate and maximize, cannot be empty
         Returns the X that maximizes the function this approximates.
         '''
-        return list(xs)[np.argmax(self.evaluate(xs))]
+        # return list(xs)[np.argmax(self.evaluate(xs))] # OLD VERSION - used up iterator
+        keep_xs = list(xs)
+        return keep_xs[np.argmax(self.evaluate(keep_xs))]
+
 
     def rmse(
         self,
@@ -692,6 +695,21 @@ class DNNApprox(FunctionApprox[X]):
                     objective_derivative_output=obj_deriv_output
                 ))]
 
+    def update_fac(
+        self,
+        x_value: X,
+        fac: float
+    ) -> DNNApprox[X]:
+        return replace(
+            self,
+            weights=[w.update(g*fac) for w, g in zip(
+                self.weights,
+                self.backward_propagation(
+                    fwd_prop=self.forward_propagation([x_value]),
+                    objective_derivative_output=lambda arr: np.ones_like(arr))
+            )]
+        )
+
     def update(
         self,
         xy_vals_seq: Iterable[Tuple[X, float]]
@@ -703,7 +721,6 @@ class DNNApprox(FunctionApprox[X]):
                 self.regularized_loss_gradient(xy_vals_seq)
             )]
         )
-
     def solve(
         self,
         xy_vals_seq: Iterable[Tuple[X, float]],

@@ -263,13 +263,12 @@ def back_opt_vf_and_policy(
     num_steps: int = len(mdp_f0_mu_triples)
 
     for i, (mdp, approx0, mu) in enumerate(reversed(mdp_f0_mu_triples)):
-
+        print("STARTING LAYER", i)
         def return_(s_r: Tuple[S, float], i=i) -> float:
             s1, r = s_r
             return r + γ * (vp[i-1][0].evaluate([s1]).item() if i > 0 and not
                             mdp_f0_mu_triples[num_steps - i][0].is_terminal(s1)
                             else 0.)
-
         this_v = approx0.solve(
             [(s, max(mdp.step(s, a).expectation(return_)
                      for a in mdp.actions(s)))

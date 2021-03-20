@@ -19,7 +19,7 @@
 \setlength {\parskip}{2pt}
 \setlength{\parindent}{0pt}
 
-\newcommand{\headings}[4]{\noindent {\bf Assignment 2 CME241} \hfill {{\bf Author:} Nicolas Sanchez} \\
+\newcommand{\headings}[4]{\noindent {\bf Assignment 4 CME241} \hfill {{\bf Author:} Nicolas Sanchez} \\
 {} \hfill {{\bf Due Date:} #2} \\
 
 \rule[0.1in]{\textwidth}{0.025in}
@@ -98,5 +98,18 @@ V(\tilde{u}, i)& =  \max\{ \frac{\log(w_i) + \frac{\alpha\gamma}{n} \sum_{j=1}^n
 
 We can now hence implement an algorithm that repeatedly updates $V(\tilde{u}, i)$ and then once it converges, calculate the final $V(\tilde{e}, i)$. This is implemented in worker.py. The start point for $V(\tilde{u}, i)$ is the "worst case" scenario of being unemployed for ever: $\frac{1}{1-\gamma}{\log(w_0)}$.
 
+\section{Two Store Inventory Problem}
+We adapt the problem to the given two store setup by making a few changes. First our state is now the combined state of the two stores
+$$ S = \{(\alpha_1,\beta_1,\alpha_2,\beta_2) | \alpha_1+\beta_1 \leq C_1,  \alpha_2+\beta_2 \leq C_2\}  $$
+
+We also change the action set to being the set for a given $s =(\alpha_1,\beta_1,\alpha_2,\beta_2) $:
+$$A_s \{(o_1,o_2, t) \in \mathbb{N}\times \mathbb{N}\times\mathbb{Z}|-\alpha_2\leq t\leq\alpha_1,0 \leq \alpha_1 +\beta_1- t + o_1 \leq C_1, 0 \leq \alpha_2 +\beta_2+ t + o_1 \leq C_2 \}$$
+where $t$ now denotes the the internal move between the stores. Note that because the internal move arrives the next morning an analogous breakdown of product shortage as in the one store cases yields 4 cases for the probability distribution using $x_1\sim Poi(\lambda_1)$.$x_2\sim Poi(\lambda_2)$.\\
+Neither store runs out of inventory the next day, meaning that $x_1\leq \alpha_1 - t + \beta_1$ and $x_2\leq \alpha_2 + t + \beta_2$ and the return is the carry cost (after internal move), costs of transportation and no stock out costs. Since $x_1,x_2$ assumed to be independent we use the respective PDFs to compute the probability for this outcome.\\
+Both stores run out of inventory the next day, meaning that $x_1> \alpha_1 - t + \beta_1$ and $x_2> \alpha_2 + t + \beta_2$ and the return is the carry cost (after internal move), costs of transportation and both stock out costs. Since $x_1,x_2$ assumed to be independent we use the respective CDFs to compute the probability for this outcome.\\
+One of the store, say store 1, runs out of inventory the next day, meaning that $x_1> \alpha_1 - t + \beta_1$ and $x_2\leq \alpha_2 + t + \beta_2$ and the return is the carry cost (after internal move), costs of transportation and stock out costs for store. Since $x_1,x_2$ assumed to be independent we use the CDF for store 1  to compute the probability for this outcome. \\
+Analogous reasoning can be used for when store 2 runs out of inventory. \\
+
+The result is coded up in the twoStore\_inventory\_mdp\_cap.py script and yields intuitively reasonable results including ordering from the store when both stores are low on inventory and transferring internally when one store has a lot of inventory and more coming in while the other has none coming in on the previous order.
 
 \end{document}

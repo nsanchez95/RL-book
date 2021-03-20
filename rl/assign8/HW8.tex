@@ -71,4 +71,7 @@ So the solution is the $S$ that satisfies the above (this exists since the the c
 Looking at the payout structure suggests we can think of the milkman as having to choose a strike from which he will get long $p$ units of calls and $h$ units of puts where the underlying the demand for milk.
 
 \section{American Option Pricing}
+The American Option Markov Decision Process is written up in optimal\_american\_option.py. We perform approximate dynamic programming using a linear function approximation who's features essentially approximate the value of the option as a cubic function of the strike price.
+
+We test it out with the standard log normal distribution and find intuitively meaning full results, notably that the option is exercised starting at higher and higher strikes as time closes in, something that we know to be true from the binomial approximation. 
 \end{document}

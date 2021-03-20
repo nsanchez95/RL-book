@@ -123,7 +123,7 @@ class SimpleInventoryMDPCap(FiniteMarkovDecisionProcess[InventoryState, OrderAct
                                     #Voila!
                                     d1[ord_act] = Categorical(sr_probs_dict)
                         d[state] = d1
-                return d
+        return d
 
 
 if __name__ == '__main__':
@@ -156,67 +156,16 @@ if __name__ == '__main__':
             transp_cost_int = user_transp_cost_int
         )
 
-    print("MDP Transition Map")
-    print("------------------")
-    print(si_mdp)
-
-    # fdp: FinitePolicy[InventoryState, int] = FinitePolicy(
-    #     {InventoryState(alpha, beta):
-    #      Constant(user_capacity - (alpha + beta)) for alpha in
-    #      range(user_capacity + 1) for beta in range(user_capacity + 1 - alpha)}
-    # )
-
-    # print("Policy Map")
-    # print("----------")
-    # print(fdp)
-
-    # implied_mrp: FiniteMarkovRewardProcess[InventoryState] =\
-    #     si_mdp.apply_finite_policy(fdp)
-    # print("Implied MP Transition Map")
-    # print("--------------")
-    # print(FiniteMarkovProcess(implied_mrp.transition_map))
-
-    # print("Implied MRP Transition Reward Map")
-    # print("---------------------")
-    # print(implied_mrp)
-
-    # print("Implied MP Stationary Distribution")
-    # print("-----------------------")
-    # implied_mrp.display_stationary_distribution()
-    # print()
-
-    # print("Implied MRP Reward Function")
-    # print("---------------")
-    # implied_mrp.display_reward_function()
-    # print()
-
-    # print("Implied MRP Value Function")
-    # print("--------------")
-    # implied_mrp.display_value_function(gamma=user_gamma)
-    # print()
 
     from rl.dynamic_programming import evaluate_mrp_result
     from rl.dynamic_programming import policy_iteration_result
     from rl.dynamic_programming import value_iteration_result
 
-    # print("Implied MRP Policy Evaluation Value Function")
-    # print("--------------")
-    # pprint(evaluate_mrp_result(implied_mrp, gamma=user_gamma))
-    # print()
 
-    print("MDP Policy Iteration Optimal Value Function and Optimal Policy")
+    print("MDP Policy Iteration Optimal Policy")
     print("--------------")
     opt_vf_pi, opt_policy_pi = policy_iteration_result(
         si_mdp,
         gamma=user_gamma
     )
-    # pprint(opt_vf_pi)
     print(opt_policy_pi)
-    print()
-
-    # print("MDP Value Iteration Optimal Value Function and Optimal Policy")
-    # print("--------------")
-    # opt_vf_vi, opt_policy_vi = value_iteration_result(si_mdp, gamma=user_gamma)
-    # pprint(opt_vf_vi)
-    # print(opt_policy_vi)
-    # print()
